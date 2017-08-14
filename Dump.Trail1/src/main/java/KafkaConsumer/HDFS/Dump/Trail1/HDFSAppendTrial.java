@@ -9,7 +9,7 @@ import org.apache.hadoop.fs.FileSystem;
 import org.apache.hadoop.fs.Path;
 
 public class HDFSAppendTrial {
-	public FileSystem configureFileSystem(String coreSitePath, String hdfsSitePath) {
+	public FileSystem configureFileSystem(String coreSitePath, String hdfsSitePath) {  // HDFS FileSystem is configured here
   	    FileSystem fileSystem = null;
   	    try {
   	        Configuration conf = new Configuration();
@@ -24,7 +24,7 @@ public class HDFSAppendTrial {
   	    }
   	    return fileSystem;
   	}
-  	public String appendToFile(FileSystem fileSystem, String content, String dest) throws IOException {
+  	public String appendToFile(FileSystem fileSystem, String content, String dest) throws IOException { // Here data is appended to file location specified
         String editedContent = content+"\n";
   	    Path destPath = new Path(dest);
   	    if (!fileSystem.exists(destPath)) {
