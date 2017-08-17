@@ -14,33 +14,36 @@ import java.util.Properties;
 
 public class App {
 	public static void main(String[] args) throws IOException {
-		
-		Properties consumerConfig = new Properties(); //here we configure kafka broker properties 
+		Properties consumerConfig = new Properties();
 		consumerConfig.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, "sandbox.hortonworks.com:6667");
 		consumerConfig.put(ConsumerConfig.GROUP_ID_CONFIG, "my-group");
-		consumerConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "earliest");
+		consumerConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");
+		consumerConfig.put(ConsumerConfig.ENABLE_AUTO_COMMIT_CONFIG,"True");
+		consumerConfig.put(ConsumerConfig.SESSION_TIMEOUT_MS_CONFIG,"99998");
+		consumerConfig.put(ConsumerConfig.HEARTBEAT_INTERVAL_MS_CONFIG,"10000");
+		consumerConfig.put(ConsumerConfig.REQUEST_TIMEOUT_MS_CONFIG,"99999");
+		consumerConfig.put(ConsumerConfig.AUTO_OFFSET_RESET_CONFIG, "latest");	
 		consumerConfig.put(ConsumerConfig.VALUE_DESERIALIZER_CLASS_CONFIG,
 				"org.apache.kafka.common.serialization.StringDeserializer");
 		consumerConfig.put(ConsumerConfig.KEY_DESERIALIZER_CLASS_CONFIG,
 				"org.apache.kafka.common.serialization.StringDeserializer");
 		@SuppressWarnings("resource")
-		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(consumerConfig); // creating kafka consumer using specified consumer configurations above
+		KafkaConsumer<String, String> consumer = new KafkaConsumer<String, String>(consumerConfig);
 		TestConsumerRebalanceListener rebalanceListener = new TestConsumerRebalanceListener();
-		consumer.subscribe(Collections.singletonList("test1"), rebalanceListener);
-		HDFSAppendTrial example = new HDFSAppendTrial(); // creating an object to HDFSAppendTrial to access methods required to append data on to hdfs
-		String coreSite = "/usr/hdp/2.6.0.3-8/hadoop/etc/hadoop/core-site.xml"; // core-site.xml file path is given here
-		String hdfsSite = "/usr/hdp/2.6.0.3-8/hadoop/etc/hadoop/hdfs-site.xml"; // hdfs-site.xml file path is given here
-		String hdfsFilePath = "/appendTo/Trial.csv"; // path to append consumer data on HDFS file is given here
-
+		consumer.subscribe(Collections.singletonList("test3"), rebalanceListener);
+		HDFSAppendTrial example = new HDFSAppendTrial();
+		String coreSite = "/usr/hdp/2.6.0.3-8/hadoop/etc/hadoop/core-site.xml";
+		String hdfsSite = "/usr/hdp/2.6.0.3-8/hadoop/etc/hadoop/hdfs-site.xml";
+		String hdfsFilePath = "/appendTo/Trial.csv";
+		int i =0;
 		while (true) {
-			ConsumerRecords<String, String> records = consumer.poll(1000000); // fetching data as records from topic
+			ConsumerRecords<String, String> records = consumer.poll(10);
 			for (ConsumerRecord<String, String> record : records) {
-				FileSystem fileSystem = example.configureFileSystem(coreSite, hdfsSite); /* creating FileSystem object using the configurations provided in 
-				core-site.xml and hdfs-site.xml */
-				String res = example.appendToFile(fileSystem, record.value(), hdfsFilePath); 
+				FileSystem fileSystem = example.configureFileSystem(coreSite, hdfsSite);
+				String res = example.appendToFile(fileSystem, record.value(), hdfsFilePath);
 				System.out.printf("%s\n", record.value());
 				if (res.equalsIgnoreCase( "success")) {
-		            System.out.println("Successfully appended to file");
+		            System.out.println("Successfully appended to file : number of records appended till %d" +i++);
 		        }
 		        else
 		            System.out.println("couldn't append to file");
